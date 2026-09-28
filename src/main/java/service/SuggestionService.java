@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class SuggestionService {
@@ -57,13 +58,41 @@ public class SuggestionService {
         return places.get(randNum);
     }
     public List<Place> findUnvisited(){
-		HashSet<Long> ids = new HashSet<>();
+		Set<Long> ids = new HashSet<>();
         for(CheckIn checkin: checkInRepository.findAll()){
-            if(checkin.getIsComplete() != null && checkin.getIsComplete()){
-                ids.add(checkin.getId());
+            if(checkin.getIsComplete() != null && checkin.getSuggestedPlace() !=null && checkin.getIsComplete()){
+                ids.add(checkin.getSuggestedPlace().getId());
+            }
+        }
+        List<Place> notVisited = new ArrayList<>();
+        for(Place place: placeRepository.findAll()){
+            if(!ids.contains(place.getId())){
+                notVisited.add(place);
             }
         }
 
-        return null;
+        return notVisited;
+    }
+
+    public Place suggest(String mood){
+        if(mood == null) return null;
+
+        String tagForMood = tagForMood(mood);
+        if(tagForMood == null) return null;
+
+        List<Place> candidate = new ArrayList<>();
+
+        if(mood.equalsIgnoreCase("motivated")){
+            for (Place place: findUnvisited()){
+                if(place.getTags() != null && place.getTags().contains(tagForMood)){
+                    candidate.add(place);
+                }
+            }
+        }
+        else{
+            candidate = findByTag(tagForMood);
+        }
+
+        return pickRandom(candidate);
     }
 }
