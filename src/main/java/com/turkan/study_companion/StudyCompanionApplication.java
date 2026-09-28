@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.turkan.study_companion", "controller"})
+@ComponentScan(basePackages = {"com.turkan.study_companion", "controller", "service"})
 @EntityScan(basePackages = "model")
 @EnableJpaRepositories(basePackages = "repository")
 public class StudyCompanionApplication {
