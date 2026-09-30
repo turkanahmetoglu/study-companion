@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Comparator;
 
 @Service
 public class SuggestionService {
@@ -95,4 +96,42 @@ public class SuggestionService {
 
         return pickRandom(candidate);
     }
+
+    public List<CheckIn> sortedCheckIns() {
+        List<CheckIn> checkins = checkInRepository.findAll();
+        checkins.sort(Comparator.comparing(CheckIn::getDate));
+        return checkins;
+    }
+
+    public int calculateWarmth() {
+        int warmth = 0;
+
+        for (CheckIn checkin : sortedCheckIns()) {
+            if (checkin.getIsComplete() != null && checkin.getIsComplete()) {
+                warmth++;
+            } else {
+                warmth--;
+                if (warmth < 0) warmth = 0;
+            }
+        }
+
+        return warmth;
+    }
+
+    public int currentStreak() {
+        List<CheckIn> checkins = sortedCheckIns();
+        int streak = 0;
+
+        for (int i = checkins.size() - 1; i >= 0; i--) {
+            CheckIn checkin = checkins.get(i);
+            if (checkin.getIsComplete() != null && checkin.getIsComplete()) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+
+        return streak;
+    }
 }
+

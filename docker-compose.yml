@@ -10,6 +10,16 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/studycompanion
+      SPRING_DATASOURCE_USERNAME: turkan
+      SPRING_DATASOURCE_PASSWORD: devpassword
+    depends_on:
+      - db
 
 volumes:
   pgdata:
