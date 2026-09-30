@@ -47,7 +47,7 @@ public class SuggestionService {
             case "sad":
                 return "daylight";
             case "motivated":
-                return "focus"; 
+                return "focus";
             default:
                 return null;
         }
