@@ -9,6 +9,9 @@ import model.CheckIn;
 // importing service
 import org.springframework.stereotype.Service;
 
+import exception.InvalidMoodException;
+import exception.NoMatchingPlaceException;
+
 // importing java's classes
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +82,9 @@ public class SuggestionService {
         if(mood == null) return null;
 
         String tagForMood = tagForMood(mood);
-        if(tagForMood == null) return null;
+        if(tagForMood == null) {
+            throw new InvalidMoodException("Please choose from the following moods: happy, sad, tired, and motivated.");
+        }
 
         List<Place> candidate = new ArrayList<>();
 
@@ -92,6 +97,10 @@ public class SuggestionService {
         }
         else{
             candidate = findByTag(tagForMood);
+        }
+
+        if(candidate.isEmpty()){
+            throw new NoMatchingPlaceException("No places match that mood yet, please add one.");
         }
 
         return pickRandom(candidate);

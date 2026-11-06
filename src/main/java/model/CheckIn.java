@@ -1,7 +1,8 @@
 package model;
 import java.time.LocalDate;
 import jakarta.persistence.*;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class CheckIn {
@@ -10,9 +11,13 @@ public class CheckIn {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     private LocalDate date;
+
+    @NotBlank
     private String mood;
 
+    @NotNull
     @ManyToOne
     private Place suggestedPlace;
 

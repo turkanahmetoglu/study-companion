@@ -4,6 +4,8 @@ import model.Place;
 import repository.PlaceRepository;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -21,8 +23,9 @@ public class PlaceController {
         return placeRepository.findAll();
     }
 
+
     @PostMapping
-    public Place addPlace(@RequestBody Place place) {
+    public Place addPlace(@Valid @RequestBody Place place) {
         return placeRepository.save(place);
     }
 }

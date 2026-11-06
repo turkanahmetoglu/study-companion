@@ -4,6 +4,8 @@ import model.CheckIn;
 import repository.CheckInRepository;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -22,7 +24,7 @@ public class CheckInController {
     }
 
     @PostMapping
-    public CheckIn addCheckIn(@RequestBody CheckIn checkin){
+    public CheckIn addCheckIn(@Valid @RequestBody CheckIn checkin){
         return checkInRepository.save(checkin);
     }
 

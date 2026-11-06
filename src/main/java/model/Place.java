@@ -1,5 +1,6 @@
 package model;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 public class Place {
@@ -8,7 +9,10 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Place name must not be empty.")
     private String name;
+
+    @NotBlank(message = "Area must not be empty.")
     private String area;
     private String tags;
     private String notes;
