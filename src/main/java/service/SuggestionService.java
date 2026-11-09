@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import exception.InvalidMoodException;
 import exception.NoMatchingPlaceException;
 
-// importing java's classes
+// importing javas classes
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -142,5 +142,6 @@ public class SuggestionService {
 
         return streak;
     }
+
 }
 
