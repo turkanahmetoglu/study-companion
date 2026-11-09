@@ -3,6 +3,7 @@ package service;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.Assert;
 
+import exception.InvalidMoodException;
 import model.Place;
 import model.CheckIn;
 import repository.CheckInRepository;
@@ -115,5 +116,38 @@ class SuggestionServiceTest {
         c.setDate(LocalDate.of(2026, 11, day));
         c.setIsComplete(complete);
         return c;
+    }
+
+    @Test 
+    void calculateWarmth_neverGoesBelowZero(){
+        CheckInRepository checkInRepository = mock(CheckInRepository.class);
+        PlaceRepository placeRepository = mock(PlaceRepository.class);
+
+        CheckIn c1 = checkIn(1, false);
+        CheckIn c2 = checkIn(2, false);
+        CheckIn c3 = checkIn(3, true);
+
+        when(checkInRepository.findAll()).thenReturn(new ArrayList<>(List.of(c1,c2,c3)));
+
+        SuggestionService service = new SuggestionService(placeRepository, checkInRepository);
+
+        int result = service.calculateWarmth();
+
+        assertEquals(1,result);
+    }
+
+    @Test
+    void suggest_unknownMood_throwsInvalidMoodException() {
+        SuggestionService service = new SuggestionService(null, null);
+
+        assertThrows(InvalidMoodException.class, () -> service.suggest("angry"));
+    }
+
+    @Test
+    void suggest_null_returnsNull(){
+        SuggestionService service = new SuggestionService(null, null);
+
+        Place result = service.suggest(null);
+        assertNull(result);
     }
 }
