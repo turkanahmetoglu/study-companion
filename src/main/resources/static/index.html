@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Study Companion</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: #3d3a4b;
+      background: linear-gradient(160deg, #fdf6f0 0%, #f3f0fa 50%, #eaf3fb 100%);
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 6px;
+    }
+
+    .subtitle {
+      margin: 0 0 28px;
+      color: #7a7690;
+      font-size: 15px;
+    }
+
+    .moods {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .mood-btn {
+      border: none;
+      border-radius: 18px;
+      padding: 16px 12px;
+      font-size: 16px;
+      font-family: inherit;
+      color: #3d3a4b;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 2px 8px rgba(90, 80, 120, 0.08);
+    }
+
+    .mood-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(90, 80, 120, 0.14);
+    }
+
+    .mood-btn:active { transform: translateY(0); }
+
+    .mood-btn:focus-visible,
+    .act-btn:focus-visible {
+      outline: 3px solid #b9a8e8;
+      outline-offset: 2px;
+    }
+
+    .tired     { background: #e8e1f7; }
+    .sad       { background: #dbe9f7; }
+    .happy     { background: #fde8d4; }
+    .motivated { background: #d9f0e3; }
+
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 4px 18px rgba(90, 80, 120, 0.09);
+      margin-bottom: 18px;
+    }
+
+    #result:empty { display: none; }
+
+    .place-name { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
+    .place-area { margin: 0 0 14px; color: #7a7690; }
+    .place-notes { margin: 14px 0 0; font-style: italic; color: #5d5a70; }
+
+    .tag {
+      display: inline-block;
+      background: #efeaf9;
+      border-radius: 999px;
+      padding: 4px 12px;
+      margin: 0 6px 6px 0;
+      font-size: 13px;
+    }
+
+    .error { margin: 0; color: #a0526a; }
+
+    .message { margin: 0; }
+
+    .actions { margin-top: 16px; display: flex; gap: 10px; }
+
+    .act-btn {
+      border: none;
+      border-radius: 14px;
+      padding: 10px 18px;
+      font-family: inherit;
+      font-size: 15px;
+      background: #d9f0e3;
+      color: #3d3a4b;
+      cursor: pointer;
+    }
+
+    .act-btn.skip { background: #efeaf9; }
+
+    .streak-row {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+
+    .streak-num { font-size: 30px; font-weight: 600; margin: 0; }
+    .streak-label { margin: 2px 0 0; font-size: 13px; color: #7a7690; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>How are you feeling?</h1>
+    <p class="subtitle">Pick a mood and get a study spot that fits.</p>
+
+    <div class="moods">
+      <button class="mood-btn tired" onclick="suggest('tired')">Tired</button>
+      <button class="mood-btn sad" onclick="suggest('sad')">Sad</button>
+      <button class="mood-btn happy" onclick="suggest('happy')">Happy</button>
+      <button class="mood-btn motivated" onclick="suggest('motivated')">Motivated</button>
+    </div>
+
+    <div id="result" class="card"></div>
+
+    <div class="card streak-row">
+        <div>
+            <p class="streak-num" id="streak-num">-</p>
+            <p class="streak-label">streak</p>
+        </div>
+    </div>
+  </main>
+
+  <script>
+    let current = null;
+
+    async function suggest(mood) {
+      const res = await fetch('/suggestions?mood=' + mood);
+      const data = await res.json();
+      const box = document.getElementById('result');
+
+      if (!res.ok) {
+        current = null;
+        box.innerHTML = '<p class="error">' + data.error + '</p>';
+        return;
+      }
+
+      current = { mood: mood, placeId: data.id };
+
+      const tags = (data.tags || '').split(',')
+        .filter(function (t) { return t.trim() !== ''; })
+        .map(function (t) { return '<span class="tag">' + t.trim() + '</span>'; })
+        .join('');
+
+      box.innerHTML =
+        '<h2 class="place-name">' + data.name + '</h2>' +
+        '<p class="place-area">' + data.area + '</p>' +
+        tags +
+        (data.notes ? '<p class="place-notes">' + data.notes + '</p>' : '') +
+        '<div class="actions">' +
+          '<button class="act-btn" onclick="record(true)">I went</button>' +
+          '<button class="act-btn skip" onclick="record(false)">Skip</button>' +
+        '</div>';
+    }
+
+    async function record(done) {
+      if (!current) return;
+
+      const res = await fetch('/checkins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mood: current.mood,
+          date: new Date().toLocaleDateString('en-CA'),
+          suggestedPlace: { id: current.placeId },
+          isComplete: done
+        })
+      });
+
+      const box = document.getElementById('result');
+      if (res.ok) {
+        box.innerHTML = '<p class="message">' +
+          (done ? 'Nice, logged!' : 'Skipped, no worries.') + '</p>';
+        current = null;
+        loadStreak();
+      } else {
+        box.innerHTML = '<p class="error">Could not save the check-in.</p>';
+      }
+    }
+
+    async function loadStreak() {
+        const res = await fetch('/suggestions/streak');
+        const data = await res.json();
+        document.getElementById('streak-num').textContent = data.warmth;
+        }
+
+    loadStreak();
+  </script>
+</body>
+</html>
